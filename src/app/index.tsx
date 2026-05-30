@@ -1,15 +1,16 @@
+import { Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useGame } from '@/context/game-context';
 import { useTheme } from '@/hooks/use-theme';
 
 function rollDice(dice: string[][]): string[] {
-  return dice.map(die => die[Math.floor(Math.random() * die.length)]);
+  return dice.map((die) => die[Math.floor(Math.random() * die.length)]);
 }
 
 function playBuzzer() {
@@ -68,7 +69,7 @@ export default function BockleScreen() {
     setIsRunning(true);
 
     intervalRef.current = setInterval(() => {
-      setRemainingSeconds(prev => {
+      setRemainingSeconds((prev) => {
         const next = prev - 1;
 
         if (next <= 0) {
@@ -93,20 +94,19 @@ export default function BockleScreen() {
   const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
   const timerColor =
-    displayTime <= 30 && isRunning
-      ? '#FF3B30'
-      : displayTime <= 60 && isRunning
-        ? '#FF9500'
-        : theme.text;
+    displayTime <= 30 && isRunning ? '#FF3B30' : displayTime <= 60 && isRunning ? '#FF9500' : theme.text;
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={[styles.safeArea, { paddingBottom: BottomTabInset + Spacing.three }]}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={[styles.safeArea]}>
         <ThemedText type="title" style={styles.title}>
           Bockle
         </ThemedText>
 
-        <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
+        <View style={styles.timerContainer}>
+          <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
+        </View>
 
         <View style={styles.grid}>
           {rolledFaces.map((face, index) => (
@@ -126,7 +126,8 @@ export default function BockleScreen() {
               opacity: pressed ? 0.75 : 1,
             },
           ]}
-          onPress={handleStart}>
+          onPress={handleStart}
+        >
           <ThemedText style={styles.buttonText}>{isRunning ? 'Stop' : 'Start'}</ThemedText>
         </Pressable>
       </SafeAreaView>
@@ -141,7 +142,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
   },
@@ -149,11 +149,24 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: '700',
   },
+  timerContainer: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 80,
+    minWidth: 220,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: Spacing.five,
+    borderRadius: Spacing.five,
+  },
+
   timer: {
     fontSize: 56,
+    lineHeight: 60,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
     letterSpacing: 2,
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',

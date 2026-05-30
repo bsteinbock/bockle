@@ -39,7 +39,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "eas:init": "npx eas init",
+    "build:dev:ios": "npx eas build --profile development --platform ios",
+    "build:dev:android": "npx eas build --profile development --platform android",
+    "build:dev:simulator": "npx eas build --profile development-simulator --platform ios"
   },
   "private": true
 }
