@@ -1,61 +1,134 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
+import { useGame } from '@/context/game-context';
+import { useTheme } from '@/hooks/use-theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+function rollDice(dice: string[][]): string[] {
+  return dice.map(die => die[Math.floor(Math.random() * die.length)]);
 }
 
-export default function HomeScreen() {
+function playBuzzer() {
+  if (Platform.OS === 'web') {
+    try {
+      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 1.5);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 1.5);
+    } catch {}
+  } else {
+    Vibration.vibrate([0, 200, 100, 200, 100, 300, 50, 500]);
+  }
+}
+
+export default function BockleScreen() {
+  const { dice, timerMinutes } = useGame();
+  const theme = useTheme();
+
+  const [rolledFaces, setRolledFaces] = useState<string[]>(() => rollDice(dice));
+  const [remainingSeconds, setRemainingSeconds] = useState(timerMinutes * 60);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  const handleStart = () => {
+    if (isRunning) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setIsRunning(false);
+      setRemainingSeconds(timerMinutes * 60);
+      return;
+    }
+
+    setRolledFaces(rollDice(dice));
+    const totalSeconds = timerMinutes * 60;
+    setRemainingSeconds(totalSeconds);
+    setIsRunning(true);
+
+    intervalRef.current = setInterval(() => {
+      setRemainingSeconds(prev => {
+        const next = prev - 1;
+
+        if (next <= 0) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          setIsRunning(false);
+          playBuzzer();
+          return 0;
+        }
+
+        return next;
+      });
+    }, 1000);
+  };
+
+  const displayTime = isRunning ? remainingSeconds : timerMinutes * 60;
+
+  const minutes = Math.floor(displayTime / 60);
+  const seconds = displayTime % 60;
+  const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  const timerColor =
+    displayTime <= 30 && isRunning
+      ? '#FF3B30'
+      : displayTime <= 60 && isRunning
+        ? '#FF9500'
+        : theme.text;
+
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
+      <SafeAreaView style={[styles.safeArea, { paddingBottom: BottomTabInset + Spacing.three }]}>
+        <ThemedText type="title" style={styles.title}>
+          Bockle
         </ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
 
-        {Platform.OS === 'web' && <WebBadge />}
+        <View style={styles.grid}>
+          {rolledFaces.map((face, index) => (
+            <View key={index} style={styles.dieWrapper}>
+              <ThemedView type="backgroundElement" style={styles.die}>
+                <ThemedText style={styles.dieLetter}>{face}</ThemedText>
+              </ThemedView>
+            </View>
+          ))}
+        </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            {
+              backgroundColor: isRunning ? '#FF3B30' : '#34C759',
+              opacity: pressed ? 0.75 : 1,
+            },
+          ]}
+          onPress={handleStart}>
+          <ThemedText style={styles.buttonText}>{isRunning ? 'Stop' : 'Start'}</ThemedText>
+        </Pressable>
       </SafeAreaView>
     </ThemedView>
   );
@@ -64,35 +137,68 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.three,
   },
   title: {
-    textAlign: 'center',
+    fontSize: 40,
+    fontWeight: '700',
   },
-  code: {
-    textTransform: 'uppercase',
+  timer: {
+    fontSize: 56,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: 2,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+  },
+  dieWrapper: {
+    width: '25%',
+    aspectRatio: 1,
+    padding: 5,
+  },
+  die: {
+    flex: 1,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  dieLetter: {
+    fontSize: 28,
+    fontWeight: '700',
+    lineHeight: 34,
+  },
+  button: {
+    paddingHorizontal: Spacing.five,
+    paddingVertical: Spacing.three,
+    borderRadius: Spacing.five,
+    minWidth: 140,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
