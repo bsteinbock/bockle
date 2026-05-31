@@ -108,7 +108,12 @@ export default function BockleScreen() {
   };
 
   const displayTime = gameStatus === 'idle' ? timerMinutes * 60 : remainingSeconds;
-  const displayedFaces = gameStatus === 'idle' ? Array.from({ length: 16 }, () => '?') : rolledFaces;
+  const displayedFaces =
+    gameStatus === 'idle'
+      ? Array.from({ length: 16 }, () => '?')
+      : gameStatus === 'paused'
+        ? Array.from({ length: 16 }, () => '#')
+        : rolledFaces;
 
   const minutes = Math.floor(displayTime / 60);
   const seconds = displayTime % 60;
