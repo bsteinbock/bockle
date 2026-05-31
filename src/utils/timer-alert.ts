@@ -55,7 +55,8 @@ export function playTimerExpiredAlert(mode: ExpiryAlertMode, alertText: string) 
     Speech.speak(spokenText, {
       language: 'en-US',
       pitch: 1,
-      rate: 0.95,
+      rate: 1.0,
+      volume: 0.5,
     });
     return;
   }
