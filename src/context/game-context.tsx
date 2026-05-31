@@ -2,7 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type ExpiryAlertMode = 'speak' | 'vibrate';
+export type ExpiryAlertVolume = 0.3 | 0.6 | 1.0;
 export const DEFAULT_EXPIRY_ALERT_TEXT = "Time's up";
+export const DEFAULT_EXPIRY_ALERT_VOLUME: ExpiryAlertVolume = 0.6;
 const DEFAULT_TIMER_MINUTES = 3;
 
 export const DEFAULT_DICE: string[][] = [
@@ -34,12 +36,20 @@ type GameContextType = {
   setExpiryAlertMode: (mode: ExpiryAlertMode) => void;
   expiryAlertText: string;
   setExpiryAlertText: (text: string) => void;
+  expiryAlertVolume: ExpiryAlertVolume;
+  setExpiryAlertVolume: (volume: ExpiryAlertVolume) => void;
 };
 
 const DICE_STORAGE_KEY = 'bockle:dice-config';
 const EXPIRY_ALERT_MODE_STORAGE_KEY = 'bockle:expiry-alert-mode';
 const EXPIRY_ALERT_TEXT_STORAGE_KEY = 'bockle:expiry-alert-text';
+const EXPIRY_ALERT_VOLUME_STORAGE_KEY = 'bockle:expiry-alert-volume';
 const TIMER_MINUTES_STORAGE_KEY = 'bockle:timer-minutes';
+
+function normalizeExpiryAlertVolume(value: unknown): ExpiryAlertVolume {
+  if (value === 0.3 || value === 0.6 || value === 1.0) return value;
+  return DEFAULT_EXPIRY_ALERT_VOLUME;
+}
 
 function normalizeTimerMinutes(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_TIMER_MINUTES;
@@ -104,6 +114,8 @@ const GameContext = createContext<GameContextType>({
   setExpiryAlertMode: () => {},
   expiryAlertText: DEFAULT_EXPIRY_ALERT_TEXT,
   setExpiryAlertText: () => {},
+  expiryAlertVolume: DEFAULT_EXPIRY_ALERT_VOLUME,
+  setExpiryAlertVolume: () => {},
 });
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -112,6 +124,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [hasCustomSavedDice, setHasCustomSavedDice] = useState(false);
   const [expiryAlertMode, setExpiryAlertMode] = useState<ExpiryAlertMode>('speak');
   const [expiryAlertText, setExpiryAlertText] = useState(DEFAULT_EXPIRY_ALERT_TEXT);
+  const [expiryAlertVolume, setExpiryAlertVolume] = useState<ExpiryAlertVolume>(DEFAULT_EXPIRY_ALERT_VOLUME);
   const [hasHydratedDice, setHasHydratedDice] = useState(false);
 
   useEffect(() => {
@@ -145,6 +158,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const savedAlertText = await AsyncStorage.getItem(EXPIRY_ALERT_TEXT_STORAGE_KEY);
         if (savedAlertText !== null) {
           if (isMounted) setExpiryAlertText(normalizeExpiryAlertText(savedAlertText));
+        }
+
+        const savedAlertVolume = await AsyncStorage.getItem(EXPIRY_ALERT_VOLUME_STORAGE_KEY);
+        if (savedAlertVolume !== null) {
+          const parsedAlertVolume = Number(savedAlertVolume);
+          if (isMounted) setExpiryAlertVolume(normalizeExpiryAlertVolume(parsedAlertVolume));
         }
 
         const savedTimerMinutes = await AsyncStorage.getItem(TIMER_MINUTES_STORAGE_KEY);
@@ -226,6 +245,27 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hasHydratedDice) return;
 
+    const normalizedVolume = normalizeExpiryAlertVolume(expiryAlertVolume);
+
+    if (normalizedVolume !== expiryAlertVolume) {
+      setExpiryAlertVolume(normalizedVolume);
+      return;
+    }
+
+    async function persistAlertVolume() {
+      try {
+        await AsyncStorage.setItem(EXPIRY_ALERT_VOLUME_STORAGE_KEY, String(normalizedVolume));
+      } catch {
+        // Ignore write errors to keep UI responsive.
+      }
+    }
+
+    persistAlertVolume();
+  }, [expiryAlertVolume, hasHydratedDice]);
+
+  useEffect(() => {
+    if (!hasHydratedDice) return;
+
     const normalizedTimerMinutes = normalizeTimerMinutes(timerMinutes);
 
     if (normalizedTimerMinutes !== timerMinutes) {
@@ -256,6 +296,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         setExpiryAlertMode,
         expiryAlertText,
         setExpiryAlertText,
+        expiryAlertVolume,
+        setExpiryAlertVolume,
       }}
     >
       {children}

@@ -19,6 +19,8 @@ export default function SettingsScreen() {
     setExpiryAlertMode,
     expiryAlertText,
     setExpiryAlertText,
+    expiryAlertVolume,
+    setExpiryAlertVolume,
   } = useGame();
   const theme = useTheme();
   const safeAreaInsets = useSafeAreaInsets();
@@ -141,6 +143,42 @@ export default function SettingsScreen() {
               })}
             </View>
             <ThemedText type="small" themeColor="textSecondary">
+              Alert Volume
+            </ThemedText>
+            <View style={styles.alertModeRow}>
+              {[
+                { label: 'Low', value: 0.3 as const },
+                { label: 'Medium', value: 0.6 as const },
+                { label: 'High', value: 1.0 as const },
+              ].map(({ label, value }) => {
+                const isSelected = expiryAlertVolume === value;
+
+                return (
+                  <Pressable
+                    key={label}
+                    style={({ pressed }) => [
+                      styles.alertModeButton,
+                      {
+                        backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
+                        borderColor: isSelected ? theme.text : theme.textSecondary,
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                    onPress={() => setExpiryAlertVolume(value)}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.alertModeButtonText,
+                        { color: isSelected ? theme.text : theme.textSecondary },
+                      ]}
+                    >
+                      {label}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
               Alert Text (for Speak mode)
             </ThemedText>
             <View style={styles.alertTextRow}>
@@ -186,7 +224,7 @@ export default function SettingsScreen() {
                 styles.testAlertButton,
                 { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
               ]}
-              onPress={() => playTimerExpiredAlert(expiryAlertMode, expiryAlertText)}
+              onPress={() => playTimerExpiredAlert(expiryAlertMode, expiryAlertText, expiryAlertVolume)}
             >
               <ThemedText type="smallBold">Test Alert</ThemedText>
             </Pressable>

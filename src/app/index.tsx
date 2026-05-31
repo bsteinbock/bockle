@@ -15,7 +15,7 @@ function rollDice(dice: string[][]): string[] {
 }
 
 export default function BockleScreen() {
-  const { dice, timerMinutes, expiryAlertMode, expiryAlertText } = useGame();
+  const { dice, timerMinutes, expiryAlertMode, expiryAlertText, expiryAlertVolume } = useGame();
   const theme = useTheme();
 
   const [rolledFaces, setRolledFaces] = useState<string[]>(() => rollDice(dice));
@@ -48,7 +48,7 @@ export default function BockleScreen() {
         if (next <= 0) {
           stopTimer();
           setGameStatus('finished');
-          playTimerExpiredAlert(expiryAlertMode, expiryAlertText);
+          playTimerExpiredAlert(expiryAlertMode, expiryAlertText, expiryAlertVolume);
           return 0;
         }
 

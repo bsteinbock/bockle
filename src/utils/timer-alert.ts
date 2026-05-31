@@ -2,10 +2,10 @@ import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 import { Platform, Vibration } from 'react-native';
 
-import type { ExpiryAlertMode } from '@/context/game-context';
+import type { ExpiryAlertMode, ExpiryAlertVolume } from '@/context/game-context';
 import { DEFAULT_EXPIRY_ALERT_TEXT } from '@/context/game-context';
 
-function playWebBuzzer() {
+function playWebBuzzer(volume: ExpiryAlertVolume) {
   try {
     const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
@@ -19,7 +19,7 @@ function playWebBuzzer() {
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(150, ctx.currentTime);
     osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 1.5);
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.setValueAtTime(0.4 * volume, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 1.5);
@@ -42,9 +42,13 @@ async function playStrongIosHapticBurst() {
   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 }
 
-export function playTimerExpiredAlert(mode: ExpiryAlertMode, alertText: string) {
+export function playTimerExpiredAlert(
+  mode: ExpiryAlertMode,
+  alertText: string,
+  alertVolume: ExpiryAlertVolume,
+) {
   if (Platform.OS === 'web') {
-    playWebBuzzer();
+    playWebBuzzer(alertVolume);
     return;
   }
 
@@ -56,7 +60,7 @@ export function playTimerExpiredAlert(mode: ExpiryAlertMode, alertText: string) 
       language: 'en-US',
       pitch: 1,
       rate: 1.0,
-      volume: 0.5,
+      volume: alertVolume,
     });
     return;
   }
