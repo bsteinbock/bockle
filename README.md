@@ -1,56 +1,127 @@
-# Welcome to your Expo app 👋
+# Bockle
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Bockle is a small cross-platform word game built with Expo and React Native. It presents a 4x4 grid of randomized dice, runs a configurable round timer, and includes in-app rules plus a settings screen for adjusting both the timer and the dice faces.
 
-## Get started
+The app uses Expo Router, Expo SDK 56, and React 19. The route files live under `src/app`, and shared game configuration is provided through a React context.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- 4x4 dice grid with a fresh roll at the start of each round
+- Round timer with start, pause, resume, and quit controls
+- Visual urgency states as the timer approaches zero
+- Web buzzer audio and native vibration when time expires
+- Configurable timer length from 1 to 5 minutes
+- Editable faces for all 16 dice, including multi-character faces like `Qu`
+- Built-in game info screen with scoring rules
+- Native tab navigation for Game, Settings, and Info
 
-2. Start the app
+## How The Game Works
 
-   ```bash
-   npx expo start
-   ```
+1. Start a round from the Game tab.
+2. Bockle rolls all 16 dice and reveals one face from each die.
+3. Players find as many words as possible before the timer expires.
+4. At the end of the round, players compare lists.
+5. Any word found by another player scores `0`.
+6. Each unique word scores the number of characters in that word.
 
-In the output, you'll find options to open the app in a
+## Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Expo SDK 56
+- Expo Router
+- React 19
+- React Native 0.85
+- TypeScript
+- ESLint via `eslint-config-expo`
+- EAS build configuration for development, preview, and production builds
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+src/
+   app/
+      _layout.tsx      Expo Router layout, theme provider, game provider, splash overlay
+      index.tsx        Main Bockle game screen
+      settings.tsx     Timer and dice configuration
+      userDoc.tsx      In-app rules and scoring information
+   components/        Reusable UI components and native tab setup
+   constants/         Theme tokens and layout constants
+   context/           Shared game state, including default dice and timer settings
+   hooks/             Theme and platform hooks
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-### Other setup steps
+### Prerequisites
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- Current Node.js LTS release
+- npm
+- Xcode for iOS simulator work on macOS
+- Android Studio for Android emulator work
+- Expo account and EAS CLI if you plan to create cloud builds
 
-## Learn more
+### Install Dependencies
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Start The App
 
-## Join the community
+```bash
+npm run start
+```
 
-Join our community of developers creating universal apps.
+Useful variants:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm run ios
+npm run android
+npm run web
+```
+
+## Available Scripts
+
+```bash
+npm run start
+npm run ios
+npm run android
+npm run web
+npm run lint
+npm run eas:init
+npm run build:dev:ios
+npm run build:dev:android
+npm run build:dev:simulator
+```
+
+## Build Profiles
+
+EAS is configured in `eas.json` with these profiles:
+
+- `development`: internal distribution development client build
+- `development-simulator`: iOS simulator development client build
+- `preview`: internal preview build
+- `production`: production build with auto-incrementing version
+
+## Application Notes
+
+- The default round length is 3 minutes.
+- Default dice are defined in the shared game context and can be reset from Settings.
+- Game state is currently in-memory only; timer and dice customizations reset when the app restarts.
+- The app supports web, iOS, and Android through Expo.
+
+## Key Implementation Details
+
+- `src/app/index.tsx` handles dice rolling, timer lifecycle, and end-of-round feedback.
+- `src/context/game-context.tsx` stores the timer length and dice definitions shared across screens.
+- `src/app/settings.tsx` allows editing each die face directly and restoring defaults.
+- `src/components/app-tabs.tsx` defines the native bottom-tab navigation.
+
+## Development Notes
+
+- The app entry point is `expo-router/entry`.
+- Expo Router typed routes and the React Compiler experiment are enabled in `app.json`.
+- Splash behavior is configured with `expo-splash-screen` and a custom animated overlay.
+
+## License
+
+This project is licensed under the terms in `LICENSE`.
