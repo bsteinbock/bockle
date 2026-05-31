@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+export type ExpiryAlertMode = 'speak' | 'vibrate';
+export const DEFAULT_EXPIRY_ALERT_TEXT = "Time's up";
+
 export const DEFAULT_DICE: string[][] = [
   ['A', 'E', 'A', 'N', 'E', 'G'],
   ['A', 'H', 'S', 'P', 'C', 'O'],
@@ -26,9 +29,24 @@ type GameContextType = {
   dice: string[][];
   setDice: (dice: string[][]) => void;
   hasCustomSavedDice: boolean;
+  expiryAlertMode: ExpiryAlertMode;
+  setExpiryAlertMode: (mode: ExpiryAlertMode) => void;
+  expiryAlertText: string;
+  setExpiryAlertText: (text: string) => void;
 };
 
 const DICE_STORAGE_KEY = 'bockle:dice-config';
+const EXPIRY_ALERT_MODE_STORAGE_KEY = 'bockle:expiry-alert-mode';
+const EXPIRY_ALERT_TEXT_STORAGE_KEY = 'bockle:expiry-alert-text';
+
+function normalizeExpiryAlertText(value: unknown): string {
+  if (typeof value !== 'string') return DEFAULT_EXPIRY_ALERT_TEXT;
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return DEFAULT_EXPIRY_ALERT_TEXT;
+
+  return trimmed.slice(0, 80);
+}
 
 function cloneDefaultDice() {
   return DEFAULT_DICE.map((die) => [...die]);
@@ -77,12 +95,18 @@ const GameContext = createContext<GameContextType>({
   dice: DEFAULT_DICE,
   setDice: () => {},
   hasCustomSavedDice: false,
+  expiryAlertMode: 'speak',
+  setExpiryAlertMode: () => {},
+  expiryAlertText: DEFAULT_EXPIRY_ALERT_TEXT,
+  setExpiryAlertText: () => {},
 });
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [timerMinutes, setTimerMinutes] = useState(3);
   const [dice, setDice] = useState<string[][]>(cloneDefaultDice());
   const [hasCustomSavedDice, setHasCustomSavedDice] = useState(false);
+  const [expiryAlertMode, setExpiryAlertMode] = useState<ExpiryAlertMode>('speak');
+  const [expiryAlertText, setExpiryAlertText] = useState(DEFAULT_EXPIRY_ALERT_TEXT);
   const [hasHydratedDice, setHasHydratedDice] = useState(false);
 
   useEffect(() => {
@@ -104,6 +128,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           } else {
             await AsyncStorage.removeItem(DICE_STORAGE_KEY);
           }
+        }
+
+        const savedAlertMode = await AsyncStorage.getItem(EXPIRY_ALERT_MODE_STORAGE_KEY);
+        if (savedAlertMode === 'speak' || savedAlertMode === 'vibrate') {
+          if (isMounted) setExpiryAlertMode(savedAlertMode);
+        } else if (savedAlertMode !== null) {
+          await AsyncStorage.removeItem(EXPIRY_ALERT_MODE_STORAGE_KEY);
+        }
+
+        const savedAlertText = await AsyncStorage.getItem(EXPIRY_ALERT_TEXT_STORAGE_KEY);
+        if (savedAlertText !== null) {
+          if (isMounted) setExpiryAlertText(normalizeExpiryAlertText(savedAlertText));
         }
       } catch {
         // Ignore read/parse errors and use defaults.
@@ -141,8 +177,55 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     persistDice();
   }, [dice, hasHydratedDice]);
 
+  useEffect(() => {
+    if (!hasHydratedDice) return;
+
+    async function persistAlertMode() {
+      try {
+        await AsyncStorage.setItem(EXPIRY_ALERT_MODE_STORAGE_KEY, expiryAlertMode);
+      } catch {
+        // Ignore write errors to keep UI responsive.
+      }
+    }
+
+    persistAlertMode();
+  }, [expiryAlertMode, hasHydratedDice]);
+
+  useEffect(() => {
+    if (!hasHydratedDice) return;
+
+    const normalizedText = normalizeExpiryAlertText(expiryAlertText);
+
+    if (normalizedText !== expiryAlertText) {
+      setExpiryAlertText(normalizedText);
+      return;
+    }
+
+    async function persistAlertText() {
+      try {
+        await AsyncStorage.setItem(EXPIRY_ALERT_TEXT_STORAGE_KEY, normalizedText);
+      } catch {
+        // Ignore write errors to keep UI responsive.
+      }
+    }
+
+    persistAlertText();
+  }, [expiryAlertText, hasHydratedDice]);
+
   return (
-    <GameContext.Provider value={{ timerMinutes, setTimerMinutes, dice, setDice, hasCustomSavedDice }}>
+    <GameContext.Provider
+      value={{
+        timerMinutes,
+        setTimerMinutes,
+        dice,
+        setDice,
+        hasCustomSavedDice,
+        expiryAlertMode,
+        setExpiryAlertMode,
+        expiryAlertText,
+        setExpiryAlertText,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );

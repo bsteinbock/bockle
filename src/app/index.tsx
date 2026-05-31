@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Vibration, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,41 +8,19 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useGame } from '@/context/game-context';
 import { useTheme } from '@/hooks/use-theme';
+import { playTimerExpiredAlert } from '@/utils/timer-alert';
 
 function rollDice(dice: string[][]): string[] {
   return dice.map((die) => die[Math.floor(Math.random() * die.length)]);
 }
 
-function playBuzzer() {
-  if (Platform.OS === 'web') {
-    try {
-      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(150, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 1.5);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 1.5);
-    } catch {}
-  } else {
-    Vibration.vibrate([0, 200, 100, 200, 100, 300, 50, 500]);
-  }
-}
-
 export default function BockleScreen() {
-  const { dice, timerMinutes } = useGame();
+  const { dice, timerMinutes, expiryAlertMode, expiryAlertText } = useGame();
   const theme = useTheme();
 
   const [rolledFaces, setRolledFaces] = useState<string[]>(() => rollDice(dice));
   const [remainingSeconds, setRemainingSeconds] = useState(timerMinutes * 60);
-  const [gameStatus, setGameStatus] = useState<'idle' | 'running' | 'paused'>('idle');
+  const [gameStatus, setGameStatus] = useState<'idle' | 'running' | 'paused' | 'finished'>('idle');
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -69,8 +47,8 @@ export default function BockleScreen() {
 
         if (next <= 0) {
           stopTimer();
-          setGameStatus('idle');
-          playBuzzer();
+          setGameStatus('finished');
+          playTimerExpiredAlert(expiryAlertMode, expiryAlertText);
           return 0;
         }
 
@@ -147,7 +125,7 @@ export default function BockleScreen() {
           ))}
         </View>
 
-        {gameStatus === 'idle' && (
+        {(gameStatus === 'idle' || gameStatus === 'finished') && (
           <Pressable
             style={({ pressed }) => [
               styles.button,

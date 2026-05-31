@@ -62,6 +62,24 @@ export default function UserDocScreen() {
             In Settings, you can customize both the timer length (1 to 5 minutes) and the characters shown on
             each face of all 16 dice.
           </ThemedText>
+          <ThemedText>
+            On mobile devices, you can also choose how the app alerts you when time expires: Speak or Vibrate.
+          </ThemedText>
+          <ThemedText>
+            If Speak is selected, you can customize the spoken Alert Text. The default is "Time's up".
+          </ThemedText>
+        </ThemedView>
+
+        <ThemedView type="backgroundElement" style={styles.section}>
+          <ThemedText type="mediumBold" style={styles.sectionLabel}>
+            Testing Alert Mode
+          </ThemedText>
+          <ThemedText>1. Open Settings and set Timer Expiration Alert to Speak or Vibrate.</ThemedText>
+          <ThemedText>2. If using Speak, edit Alert Text and save by leaving the field.</ThemedText>
+          <ThemedText>3. Tap Test Alert to confirm the selected behavior immediately.</ThemedText>
+          <ThemedText>
+            4. Start a round and let the timer reach 0:00 to verify in-game expiration feedback.
+          </ThemedText>
         </ThemedView>
       </ThemedView>
     </ScrollView>

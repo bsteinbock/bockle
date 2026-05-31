@@ -4,11 +4,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { DEFAULT_DICE, useGame } from '@/context/game-context';
+import { DEFAULT_DICE, DEFAULT_EXPIRY_ALERT_TEXT, useGame } from '@/context/game-context';
 import { useTheme } from '@/hooks/use-theme';
+import { playTimerExpiredAlert } from '@/utils/timer-alert';
 
 export default function SettingsScreen() {
-  const { timerMinutes, setTimerMinutes, dice, setDice, hasCustomSavedDice } = useGame();
+  const {
+    timerMinutes,
+    setTimerMinutes,
+    dice,
+    setDice,
+    hasCustomSavedDice,
+    expiryAlertMode,
+    setExpiryAlertMode,
+    expiryAlertText,
+    setExpiryAlertText,
+  } = useGame();
   const theme = useTheme();
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
@@ -94,6 +105,92 @@ export default function SettingsScreen() {
             ))}
           </View>
         </ThemedView>
+
+        {Platform.OS !== 'web' && (
+          <ThemedView type="backgroundElement" style={styles.section}>
+            <ThemedText type="smallBold" style={styles.sectionLabel}>
+              Timer Expiration Alert
+            </ThemedText>
+            <View style={styles.alertModeRow}>
+              {(['speak', 'vibrate'] as const).map((mode) => {
+                const isSelected = expiryAlertMode === mode;
+
+                return (
+                  <Pressable
+                    key={mode}
+                    style={({ pressed }) => [
+                      styles.alertModeButton,
+                      {
+                        backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
+                        borderColor: isSelected ? theme.text : theme.textSecondary,
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                    onPress={() => setExpiryAlertMode(mode)}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.alertModeButtonText,
+                        { color: isSelected ? theme.text : theme.textSecondary },
+                      ]}
+                    >
+                      {mode === 'speak' ? 'Speak' : 'Vibrate'}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              Alert Text (for Speak mode)
+            </ThemedText>
+            <View style={styles.alertTextRow}>
+              <TextInput
+                value={expiryAlertText}
+                onChangeText={setExpiryAlertText}
+                onBlur={() => {
+                  const normalized = expiryAlertText.trim() || DEFAULT_EXPIRY_ALERT_TEXT;
+                  if (normalized !== expiryAlertText) setExpiryAlertText(normalized);
+                }}
+                style={[
+                  styles.alertTextInput,
+                  {
+                    color: theme.text,
+                    backgroundColor: theme.background,
+                    borderColor: theme.backgroundSelected,
+                  },
+                ]}
+                placeholder={DEFAULT_EXPIRY_ALERT_TEXT}
+                placeholderTextColor={theme.textSecondary}
+                maxLength={80}
+                autoCorrect={false}
+                autoCapitalize="sentences"
+              />
+              <Pressable
+                style={({ pressed }) => [
+                  styles.resetAlertTextButton,
+                  {
+                    backgroundColor: theme.backgroundElement,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+                onPress={() => setExpiryAlertText(DEFAULT_EXPIRY_ALERT_TEXT)}
+              >
+                <ThemedText type="small" themeColor="textSecondary">
+                  Reset Alert Text
+                </ThemedText>
+              </Pressable>
+            </View>
+            <Pressable
+              style={({ pressed }) => [
+                styles.testAlertButton,
+                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+              ]}
+              onPress={() => playTimerExpiredAlert(expiryAlertMode, expiryAlertText)}
+            >
+              <ThemedText type="smallBold">Test Alert</ThemedText>
+            </Pressable>
+          </ThemedView>
+        )}
 
         {/* Dice Configuration Header */}
         <View style={styles.diceSectionHeader}>
@@ -188,6 +285,48 @@ const styles = StyleSheet.create({
   timerButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  alertModeRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  alertModeButton: {
+    flex: 1,
+    paddingVertical: Spacing.two,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1.5,
+  },
+  alertModeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  alertTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  alertTextInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    minHeight: 40,
+  },
+  resetAlertTextButton: {
+    borderRadius: 8,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  testAlertButton: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: 8,
   },
   diceSectionHeader: {
     flexDirection: 'row',
