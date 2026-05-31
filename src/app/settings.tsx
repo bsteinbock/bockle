@@ -1,5 +1,5 @@
 import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -31,7 +31,6 @@ export default function SettingsScreen() {
 
   const contentPlatformStyle = Platform.select({
     android: {
-      paddingTop: insets.top,
       paddingLeft: insets.left,
       paddingRight: insets.right,
       paddingBottom: insets.bottom,
@@ -64,225 +63,230 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={{ bottom: insets.bottom }}
-      automaticallyAdjustContentInsets={false}
-      contentInsetAdjustmentBehavior="never"
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
-    >
-      <ThemedView style={styles.container}>
-        <ThemedText type="subtitle" style={styles.pageTitle}>
-          Settings
-        </ThemedText>
-
-        {/* Timer Duration */}
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold" style={styles.sectionLabel}>
-            Timer Duration
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <ScrollView
+        style={styles.scrollView}
+        contentInset={{ bottom: insets.bottom }}
+        automaticallyAdjustContentInsets={false}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+      >
+        <ThemedView style={styles.container}>
+          <ThemedText type="subtitle" style={styles.pageTitle}>
+            Settings
           </ThemedText>
-          <View style={styles.timerRow}>
-            {[1, 2, 3, 4, 5].map((min) => (
-              <Pressable
-                key={min}
-                style={({ pressed }) => [
-                  styles.timerButton,
-                  {
-                    backgroundColor: timerMinutes === min ? theme.backgroundSelected : theme.background,
-                    borderColor: timerMinutes === min ? theme.text : theme.textSecondary,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-                onPress={() => setTimerMinutes(min)}
-              >
-                <ThemedText
-                  style={[
-                    styles.timerButtonText,
-                    { color: timerMinutes === min ? theme.text : theme.textSecondary },
-                  ]}
-                >
-                  {min}m
-                </ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        </ThemedView>
 
-        {Platform.OS !== 'web' && (
+          {/* Timer Duration */}
           <ThemedView type="backgroundElement" style={styles.section}>
             <ThemedText type="smallBold" style={styles.sectionLabel}>
-              Timer Expiration Alert
+              Timer Duration
             </ThemedText>
-            <View style={styles.alertModeRow}>
-              {(['speak', 'vibrate'] as const).map((mode) => {
-                const isSelected = expiryAlertMode === mode;
-
-                return (
-                  <Pressable
-                    key={mode}
-                    style={({ pressed }) => [
-                      styles.alertModeButton,
-                      {
-                        backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
-                        borderColor: isSelected ? theme.text : theme.textSecondary,
-                        opacity: pressed ? 0.7 : 1,
-                      },
+            <View style={styles.timerRow}>
+              {[1, 2, 3, 4, 5].map((min) => (
+                <Pressable
+                  key={min}
+                  style={({ pressed }) => [
+                    styles.timerButton,
+                    {
+                      backgroundColor: timerMinutes === min ? theme.backgroundSelected : theme.background,
+                      borderColor: timerMinutes === min ? theme.text : theme.textSecondary,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                  onPress={() => setTimerMinutes(min)}
+                >
+                  <ThemedText
+                    style={[
+                      styles.timerButtonText,
+                      { color: timerMinutes === min ? theme.text : theme.textSecondary },
                     ]}
-                    onPress={() => setExpiryAlertMode(mode)}
                   >
-                    <ThemedText
-                      style={[
-                        styles.alertModeButtonText,
-                        { color: isSelected ? theme.text : theme.textSecondary },
-                      ]}
-                    >
-                      {mode === 'speak' ? 'Speak' : 'Vibrate'}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
+                    {min}m
+                  </ThemedText>
+                </Pressable>
+              ))}
             </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              Alert Volume
-            </ThemedText>
-            <View style={styles.alertModeRow}>
-              {[
-                { label: 'Low', value: 0.3 as const },
-                { label: 'Medium', value: 0.6 as const },
-                { label: 'High', value: 1.0 as const },
-              ].map(({ label, value }) => {
-                const isSelected = expiryAlertVolume === value;
-
-                return (
-                  <Pressable
-                    key={label}
-                    style={({ pressed }) => [
-                      styles.alertModeButton,
-                      {
-                        backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
-                        borderColor: isSelected ? theme.text : theme.textSecondary,
-                        opacity: pressed ? 0.7 : 1,
-                      },
-                    ]}
-                    onPress={() => setExpiryAlertVolume(value)}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.alertModeButtonText,
-                        { color: isSelected ? theme.text : theme.textSecondary },
-                      ]}
-                    >
-                      {label}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              Alert Text (for Speak mode)
-            </ThemedText>
-            <View style={styles.alertTextRow}>
-              <TextInput
-                value={expiryAlertText}
-                onChangeText={setExpiryAlertText}
-                onBlur={() => {
-                  const normalized =
-                    expiryAlertText.length === 0 ? DEFAULT_EXPIRY_ALERT_TEXT : expiryAlertText;
-                  if (normalized !== expiryAlertText) setExpiryAlertText(normalized);
-                }}
-                style={[
-                  styles.alertTextInput,
-                  {
-                    color: theme.text,
-                    backgroundColor: theme.background,
-                    borderColor: theme.backgroundSelected,
-                  },
-                ]}
-                placeholder={DEFAULT_EXPIRY_ALERT_TEXT}
-                placeholderTextColor={theme.textSecondary}
-                maxLength={80}
-                autoCorrect={false}
-                autoCapitalize="sentences"
-              />
-              <Pressable
-                style={({ pressed }) => [
-                  styles.resetAlertTextButton,
-                  {
-                    backgroundColor: theme.backgroundElement,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-                onPress={() => setExpiryAlertText(DEFAULT_EXPIRY_ALERT_TEXT)}
-              >
-                <ThemedText type="small" themeColor="textSecondary">
-                  Reset Alert Text
-                </ThemedText>
-              </Pressable>
-            </View>
-            <Pressable
-              style={({ pressed }) => [
-                styles.testAlertButton,
-                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
-              ]}
-              onPress={() => playTimerExpiredAlert(expiryAlertMode, expiryAlertText, expiryAlertVolume)}
-            >
-              <ThemedText type="smallBold">Test Alert</ThemedText>
-            </Pressable>
           </ThemedView>
-        )}
 
-        {/* Dice Configuration Header */}
-        <View style={styles.diceSectionHeader}>
-          <ThemedText type="smallBold">Dice Configuration</ThemedText>
-          {hasCustomSavedDice && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.resetButton,
-                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
-              ]}
-              onPress={resetToDefaults}
-            >
-              <ThemedText type="small" themeColor="textSecondary">
-                Reset to Defaults
+          {Platform.OS !== 'web' && (
+            <ThemedView type="backgroundElement" style={styles.section}>
+              <ThemedText type="smallBold" style={styles.sectionLabel}>
+                Timer Expiration Alert
               </ThemedText>
-            </Pressable>
-          )}
-        </View>
+              <View style={styles.alertModeRow}>
+                {(['speak', 'vibrate'] as const).map((mode) => {
+                  const isSelected = expiryAlertMode === mode;
 
-        {dice.map((die, dieIndex) => (
-          <ThemedView key={dieIndex} type="backgroundElement" style={styles.dieCard}>
-            <ThemedText type="smallBold" themeColor="textSecondary">
-              Die {dieIndex + 1}
-            </ThemedText>
-            <View style={styles.facesRow}>
-              {die.map((face, faceIndex) => (
+                  return (
+                    <Pressable
+                      key={mode}
+                      style={({ pressed }) => [
+                        styles.alertModeButton,
+                        {
+                          backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
+                          borderColor: isSelected ? theme.text : theme.textSecondary,
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}
+                      onPress={() => setExpiryAlertMode(mode)}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.alertModeButtonText,
+                          { color: isSelected ? theme.text : theme.textSecondary },
+                        ]}
+                      >
+                        {mode === 'speak' ? 'Speak' : 'Vibrate'}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                Alert Volume
+              </ThemedText>
+              <View style={styles.alertModeRow}>
+                {[
+                  { label: 'Low', value: 0.3 as const },
+                  { label: 'Medium', value: 0.6 as const },
+                  { label: 'High', value: 1.0 as const },
+                ].map(({ label, value }) => {
+                  const isSelected = expiryAlertVolume === value;
+
+                  return (
+                    <Pressable
+                      key={label}
+                      style={({ pressed }) => [
+                        styles.alertModeButton,
+                        {
+                          backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
+                          borderColor: isSelected ? theme.text : theme.textSecondary,
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}
+                      onPress={() => setExpiryAlertVolume(value)}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.alertModeButtonText,
+                          { color: isSelected ? theme.text : theme.textSecondary },
+                        ]}
+                      >
+                        {label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                Alert Text (for Speak mode)
+              </ThemedText>
+              <View style={styles.alertTextRow}>
                 <TextInput
-                  key={faceIndex}
-                  value={face}
-                  onChangeText={(value) => updateFace(dieIndex, faceIndex, value)}
+                  value={expiryAlertText}
+                  onChangeText={setExpiryAlertText}
+                  onBlur={() => {
+                    const normalized =
+                      expiryAlertText.length === 0 ? DEFAULT_EXPIRY_ALERT_TEXT : expiryAlertText;
+                    if (normalized !== expiryAlertText) setExpiryAlertText(normalized);
+                  }}
                   style={[
-                    styles.faceInput,
+                    styles.alertTextInput,
                     {
                       color: theme.text,
                       backgroundColor: theme.background,
                       borderColor: theme.backgroundSelected,
                     },
                   ]}
-                  maxLength={2}
-                  autoCapitalize="characters"
+                  placeholder={DEFAULT_EXPIRY_ALERT_TEXT}
+                  placeholderTextColor={theme.textSecondary}
+                  maxLength={80}
                   autoCorrect={false}
-                  selectTextOnFocus
+                  autoCapitalize="sentences"
                 />
-              ))}
-            </View>
-          </ThemedView>
-        ))}
-      </ThemedView>
-    </ScrollView>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.resetAlertTextButton,
+                    {
+                      backgroundColor: theme.backgroundElement,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                  onPress={() => setExpiryAlertText(DEFAULT_EXPIRY_ALERT_TEXT)}
+                >
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Reset Alert Text
+                  </ThemedText>
+                </Pressable>
+              </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.testAlertButton,
+                  { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+                ]}
+                onPress={() => playTimerExpiredAlert(expiryAlertMode, expiryAlertText, expiryAlertVolume)}
+              >
+                <ThemedText type="smallBold">Test Alert</ThemedText>
+              </Pressable>
+            </ThemedView>
+          )}
+
+          {/* Dice Configuration Header */}
+          <View style={styles.diceSectionHeader}>
+            <ThemedText type="smallBold">Dice Configuration</ThemedText>
+            {hasCustomSavedDice && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.resetButton,
+                  { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+                ]}
+                onPress={resetToDefaults}
+              >
+                <ThemedText type="small" themeColor="textSecondary">
+                  Reset to Defaults
+                </ThemedText>
+              </Pressable>
+            )}
+          </View>
+
+          {dice.map((die, dieIndex) => (
+            <ThemedView key={dieIndex} type="backgroundElement" style={styles.dieCard}>
+              <ThemedText type="smallBold" themeColor="textSecondary">
+                Die {dieIndex + 1}
+              </ThemedText>
+              <View style={styles.facesRow}>
+                {die.map((face, faceIndex) => (
+                  <TextInput
+                    key={faceIndex}
+                    value={face}
+                    onChangeText={(value) => updateFace(dieIndex, faceIndex, value)}
+                    style={[
+                      styles.faceInput,
+                      {
+                        color: theme.text,
+                        backgroundColor: theme.background,
+                        borderColor: theme.backgroundSelected,
+                      },
+                    ]}
+                    maxLength={2}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    selectTextOnFocus
+                  />
+                ))}
+              </View>
+            </ThemedView>
+          ))}
+        </ThemedView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
