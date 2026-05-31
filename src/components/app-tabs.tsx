@@ -23,18 +23,12 @@ export default function AppTabs() {
 
       <NativeTabs.Trigger name="settings">
         <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Icon sf="gear" md="settings" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="documentation">
-        <NativeTabs.Trigger.Label>Documentation</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="userDoc">
+        <NativeTabs.Trigger.Label>Info</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="questionmark.circle" md="help" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

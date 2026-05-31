@@ -1,27 +1,36 @@
 import { TabList, TabListProps, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+
+const WEB_TAB_CLEARANCE = Spacing.six + Spacing.four + Spacing.three;
+const WEB_TAB_CLEARANCE_COMPACT = WEB_TAB_CLEARANCE - Spacing.two;
 
 export default function AppTabs() {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 820;
+
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TabSlot
+        style={{
+          height: '100%',
+          paddingTop: isCompact ? WEB_TAB_CLEARANCE_COMPACT : WEB_TAB_CLEARANCE,
+        }}
+      />
       <TabList asChild>
-        <CustomTabList>
+        <CustomTabList isCompact={isCompact}>
           <TabTrigger name="home" href="/" asChild>
-            <TabButton>Game</TabButton>
+            <TabButton compact={isCompact}>Game</TabButton>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>Settings</TabButton>
+            <TabButton compact={isCompact}>Settings</TabButton>
           </TabTrigger>
-          <TabTrigger name="documentation" href="/userDoc" asChild>
-            <TabButton>Documentation</TabButton>
+          <TabTrigger name="userDoc" href="/userDoc" asChild>
+            <TabButton compact={isCompact}>Info</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -29,10 +38,17 @@ export default function AppTabs() {
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+type TabButtonProps = TabTriggerSlotProps & {
+  compact?: boolean;
+};
+
+export function TabButton({ children, isFocused, compact, ...props }: TabButtonProps) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.tabButtonView}>
+      <ThemedView
+        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
+        style={[styles.tabButtonView, compact && styles.tabButtonViewCompact]}
+      >
         <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
           {children}
         </ThemedText>
@@ -41,29 +57,24 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
   );
 }
 
-export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+type CustomTabListProps = TabListProps & {
+  isCompact?: boolean;
+};
 
+export function CustomTabList({ isCompact, ...props }: CustomTabListProps) {
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Bockle
-        </ThemedText>
+      <ThemedView
+        type="backgroundElement"
+        style={[styles.innerContainer, isCompact && styles.innerContainerCompact]}
+      >
+        {!isCompact && (
+          <ThemedText type="smallBold" style={styles.brandText}>
+            Bockle
+          </ThemedText>
+        )}
 
         {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
       </ThemedView>
     </View>
   );
@@ -88,8 +99,13 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
   },
+  innerContainerCompact: {
+    paddingHorizontal: Spacing.three,
+    justifyContent: 'center',
+  },
   brandText: {
     marginRight: 'auto',
+    height: 24,
   },
   pressed: {
     opacity: 0.7,
@@ -98,6 +114,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+  },
+  tabButtonViewCompact: {
+    paddingHorizontal: Spacing.two,
   },
   externalPressable: {
     flexDirection: 'row',

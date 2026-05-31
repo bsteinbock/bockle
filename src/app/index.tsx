@@ -42,7 +42,7 @@ export default function BockleScreen() {
 
   const [rolledFaces, setRolledFaces] = useState<string[]>(() => rollDice(dice));
   const [remainingSeconds, setRemainingSeconds] = useState(timerMinutes * 60);
-  const [isRunning, setIsRunning] = useState(false);
+  const [gameStatus, setGameStatus] = useState<'idle' | 'running' | 'paused'>('idle');
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -52,32 +52,24 @@ export default function BockleScreen() {
     };
   }, []);
 
-  const handleStart = () => {
-    if (isRunning) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      setIsRunning(false);
-      setRemainingSeconds(timerMinutes * 60);
-      return;
+  const stopTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
+  };
 
-    setRolledFaces(rollDice(dice));
-    const totalSeconds = timerMinutes * 60;
-    setRemainingSeconds(totalSeconds);
-    setIsRunning(true);
+  const startTicking = () => {
+    stopTimer();
+    setGameStatus('running');
 
     intervalRef.current = setInterval(() => {
       setRemainingSeconds((prev) => {
         const next = prev - 1;
 
         if (next <= 0) {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
-          setIsRunning(false);
+          stopTimer();
+          setGameStatus('idle');
           playBuzzer();
           return 0;
         }
@@ -87,14 +79,47 @@ export default function BockleScreen() {
     }, 1000);
   };
 
-  const displayTime = isRunning ? remainingSeconds : timerMinutes * 60;
+  const handleStart = () => {
+    setRolledFaces(rollDice(dice));
+    const totalSeconds = timerMinutes * 60;
+    setRemainingSeconds(totalSeconds);
+    startTicking();
+  };
+
+  const handlePause = () => {
+    stopTimer();
+    setGameStatus('paused');
+  };
+
+  const handleResume = () => {
+    startTicking();
+  };
+
+  const handleStop = () => {
+    stopTimer();
+    setGameStatus('idle');
+    setRemainingSeconds(timerMinutes * 60);
+  };
+
+  const handleQuit = () => {
+    stopTimer();
+    setGameStatus('idle');
+    setRemainingSeconds(timerMinutes * 60);
+  };
+
+  const displayTime = gameStatus === 'idle' ? timerMinutes * 60 : remainingSeconds;
+  const displayedFaces = gameStatus === 'idle' ? Array.from({ length: 16 }, () => '?') : rolledFaces;
 
   const minutes = Math.floor(displayTime / 60);
   const seconds = displayTime % 60;
   const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
   const timerColor =
-    displayTime <= 30 && isRunning ? '#FF3B30' : displayTime <= 60 && isRunning ? '#FF9500' : theme.text;
+    displayTime <= 30 && gameStatus === 'running'
+      ? '#FF3B30'
+      : displayTime <= 60 && gameStatus === 'running'
+        ? '#FF9500'
+        : theme.text;
 
   return (
     <ThemedView style={styles.container}>
@@ -103,13 +128,12 @@ export default function BockleScreen() {
         <ThemedText type="title" style={styles.title}>
           Bockle
         </ThemedText>
-
         <View style={styles.timerContainer}>
           <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
         </View>
 
         <View style={styles.grid}>
-          {rolledFaces.map((face, index) => (
+          {displayedFaces.map((face, index) => (
             <View key={index} style={styles.dieWrapper}>
               <ThemedView type="backgroundElement" style={styles.die}>
                 <ThemedText style={styles.dieLetter}>{face}</ThemedText>
@@ -118,18 +142,67 @@ export default function BockleScreen() {
           ))}
         </View>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            {
-              backgroundColor: isRunning ? '#FF3B30' : '#34C759',
-              opacity: pressed ? 0.75 : 1,
-            },
-          ]}
-          onPress={handleStart}
-        >
-          <ThemedText style={styles.buttonText}>{isRunning ? 'Stop' : 'Start'}</ThemedText>
-        </Pressable>
+        {gameStatus === 'idle' && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              { backgroundColor: '#34C759', opacity: pressed ? 0.75 : 1 },
+            ]}
+            onPress={handleStart}
+          >
+            <ThemedText style={styles.buttonText}>Start</ThemedText>
+          </Pressable>
+        )}
+
+        {gameStatus === 'running' && (
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.halfButton,
+                { backgroundColor: '#FF9500', opacity: pressed ? 0.75 : 1 },
+              ]}
+              onPress={handlePause}
+            >
+              <ThemedText style={styles.buttonText}>Pause</ThemedText>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.halfButton,
+                { backgroundColor: '#FF3B30', opacity: pressed ? 0.75 : 1 },
+              ]}
+              onPress={handleStop}
+            >
+              <ThemedText style={styles.buttonText}>Quit</ThemedText>
+            </Pressable>
+          </View>
+        )}
+
+        {gameStatus === 'paused' && (
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.halfButton,
+                { backgroundColor: '#34C759', opacity: pressed ? 0.75 : 1 },
+              ]}
+              onPress={handleResume}
+            >
+              <ThemedText style={styles.buttonText}>Resume</ThemedText>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.halfButton,
+                { backgroundColor: '#8E8E93', opacity: pressed ? 0.75 : 1 },
+              ]}
+              onPress={handleQuit}
+            >
+              <ThemedText style={styles.buttonText}>Quit</ThemedText>
+            </Pressable>
+          </View>
+        )}
       </SafeAreaView>
     </ThemedView>
   );
@@ -208,6 +281,16 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.five,
     minWidth: 140,
     alignItems: 'center',
+  },
+  buttonRow: {
+    width: '100%',
+    maxWidth: 360,
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  halfButton: {
+    flex: 1,
+    minWidth: 0,
   },
   buttonText: {
     fontSize: 20,

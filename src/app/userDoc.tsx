@@ -9,20 +9,17 @@ import { useTheme } from '@/hooks/use-theme';
 export default function UserDocScreen() {
   const theme = useTheme();
   const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
+  const bottomInset = safeAreaInsets.bottom + BottomTabInset + Spacing.three;
 
   const contentPlatformStyle = Platform.select({
     android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
+      paddingTop: safeAreaInsets.top,
+      paddingLeft: safeAreaInsets.left,
+      paddingRight: safeAreaInsets.right,
+      paddingBottom: bottomInset,
     },
     web: {
-      paddingTop: Spacing.six,
+      paddingTop: 0,
       paddingBottom: Spacing.four,
     },
   });
@@ -30,15 +27,16 @@ export default function UserDocScreen() {
   return (
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
+      contentInset={{ bottom: bottomInset }}
+      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+    >
       <ThemedView style={styles.container}>
         <ThemedText type="subtitle" style={styles.pageTitle}>
-          Bockle Rules
+          Bockle Game Info
         </ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold" style={styles.sectionLabel}>
+          <ThemedText type="mediumBold" style={styles.sectionLabel}>
             Object of the Game
           </ThemedText>
           <ThemedText>
@@ -47,30 +45,22 @@ export default function UserDocScreen() {
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold" style={styles.sectionLabel}>
+          <ThemedText type="mediumBold" style={styles.sectionLabel}>
             How to Score
           </ThemedText>
-          <ThemedText>
-            1. At the end of a round, compare your words with other players.
-          </ThemedText>
-          <ThemedText>
-            2. Any word used by another player scores 0.
-          </ThemedText>
-          <ThemedText>
-            3. Add the number of characters from each word that only you found.
-          </ThemedText>
-          <ThemedText>
-            4. Your total score is the sum of the character counts of all unique words.
-          </ThemedText>
+          <ThemedText>1. At the end of a round, compare your words with other players.</ThemedText>
+          <ThemedText>2. Any word used by another player scores 0.</ThemedText>
+          <ThemedText>3. Add the number of characters from each word that only you found.</ThemedText>
+          <ThemedText>4. Your total score is the sum of the character counts of all unique words.</ThemedText>
         </ThemedView>
 
         <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold" style={styles.sectionLabel}>
+          <ThemedText type="mediumBold" style={styles.sectionLabel}>
             Customization
           </ThemedText>
           <ThemedText>
-            In Settings, you can customize both the timer length (1 to 5 minutes) and the
-            characters shown on each face of all 16 dice.
+            In Settings, you can customize both the timer length (1 to 5 minutes) and the characters shown on
+            each face of all 16 dice.
           </ThemedText>
         </ThemedView>
       </ThemedView>
@@ -87,6 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   container: {
+    width: '100%',
     flexGrow: 1,
     maxWidth: MaxContentWidth,
     paddingHorizontal: Spacing.three,

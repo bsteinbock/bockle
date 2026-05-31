@@ -24,27 +24,28 @@ export default function SettingsScreen() {
       paddingBottom: insets.bottom,
     },
     web: {
-      paddingTop: Spacing.six,
+      paddingTop: 0,
       paddingBottom: Spacing.four,
     },
   });
 
   const updateFace = (dieIndex: number, faceIndex: number, value: string) => {
     const newDice = dice.map((die, i) =>
-      i === dieIndex ? die.map((face, j) => (j === faceIndex ? value.toUpperCase() : face)) : die
+      i === dieIndex ? die.map((face, j) => (j === faceIndex ? value.toUpperCase() : face)) : die,
     );
     setDice(newDice);
   };
 
   const resetToDefaults = () => {
-    setDice(DEFAULT_DICE.map(die => [...die]));
+    setDice(DEFAULT_DICE.map((die) => [...die]));
   };
 
   return (
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
       contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
+      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+    >
       <ThemedView style={styles.container}>
         <ThemedText type="subtitle" style={styles.pageTitle}>
           Settings
@@ -56,24 +57,25 @@ export default function SettingsScreen() {
             Timer Duration
           </ThemedText>
           <View style={styles.timerRow}>
-            {[1, 2, 3, 4, 5].map(min => (
+            {[1, 2, 3, 4, 5].map((min) => (
               <Pressable
                 key={min}
                 style={({ pressed }) => [
                   styles.timerButton,
                   {
-                    backgroundColor:
-                      timerMinutes === min ? theme.backgroundSelected : theme.background,
+                    backgroundColor: timerMinutes === min ? theme.backgroundSelected : theme.background,
                     borderColor: timerMinutes === min ? theme.text : theme.textSecondary,
                     opacity: pressed ? 0.7 : 1,
                   },
                 ]}
-                onPress={() => setTimerMinutes(min)}>
+                onPress={() => setTimerMinutes(min)}
+              >
                 <ThemedText
                   style={[
                     styles.timerButtonText,
                     { color: timerMinutes === min ? theme.text : theme.textSecondary },
-                  ]}>
+                  ]}
+                >
                   {min}m
                 </ThemedText>
               </Pressable>
@@ -89,7 +91,8 @@ export default function SettingsScreen() {
               styles.resetButton,
               { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
             ]}
-            onPress={resetToDefaults}>
+            onPress={resetToDefaults}
+          >
             <ThemedText type="small" themeColor="textSecondary">
               Reset to Defaults
             </ThemedText>
@@ -106,7 +109,7 @@ export default function SettingsScreen() {
                 <TextInput
                   key={faceIndex}
                   value={face}
-                  onChangeText={value => updateFace(dieIndex, faceIndex, value)}
+                  onChangeText={(value) => updateFace(dieIndex, faceIndex, value)}
                   style={[
                     styles.faceInput,
                     {
