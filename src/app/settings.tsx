@@ -148,7 +148,8 @@ export default function SettingsScreen() {
                 value={expiryAlertText}
                 onChangeText={setExpiryAlertText}
                 onBlur={() => {
-                  const normalized = expiryAlertText.trim() || DEFAULT_EXPIRY_ALERT_TEXT;
+                  const normalized =
+                    expiryAlertText.length === 0 ? DEFAULT_EXPIRY_ALERT_TEXT : expiryAlertText;
                   if (normalized !== expiryAlertText) setExpiryAlertText(normalized);
                 }}
                 style={[

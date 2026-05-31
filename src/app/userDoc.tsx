@@ -63,6 +63,10 @@ export default function UserDocScreen() {
             each face of all 16 dice.
           </ThemedText>
           <ThemedText>
+            Timer length, dice configuration, and timer-expiration alert preferences are saved between
+            sessions.
+          </ThemedText>
+          <ThemedText>
             On mobile devices, you can also choose how the app alerts you when time expires: Speak or Vibrate.
           </ThemedText>
           <ThemedText>

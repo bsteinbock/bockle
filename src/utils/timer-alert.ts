@@ -28,6 +28,20 @@ function playWebBuzzer() {
   }
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function playStrongIosHapticBurst() {
+  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  await wait(120);
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  await wait(120);
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+}
+
 export function playTimerExpiredAlert(mode: ExpiryAlertMode, alertText: string) {
   if (Platform.OS === 'web') {
     playWebBuzzer();
@@ -47,8 +61,8 @@ export function playTimerExpiredAlert(mode: ExpiryAlertMode, alertText: string) 
   }
 
   if (Platform.OS === 'ios') {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    void playStrongIosHapticBurst();
   } else {
-    Vibration.vibrate([0, 200, 100, 200, 100, 300, 50, 500]);
+    Vibration.vibrate([0, 400, 120, 400, 120, 500, 120, 700]);
   }
 }

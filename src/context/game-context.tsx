@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type ExpiryAlertMode = 'speak' | 'vibrate';
 export const DEFAULT_EXPIRY_ALERT_TEXT = "Time's up";
+const DEFAULT_TIMER_MINUTES = 3;
 
 export const DEFAULT_DICE: string[][] = [
   ['A', 'E', 'A', 'N', 'E', 'G'],
@@ -38,14 +39,18 @@ type GameContextType = {
 const DICE_STORAGE_KEY = 'bockle:dice-config';
 const EXPIRY_ALERT_MODE_STORAGE_KEY = 'bockle:expiry-alert-mode';
 const EXPIRY_ALERT_TEXT_STORAGE_KEY = 'bockle:expiry-alert-text';
+const TIMER_MINUTES_STORAGE_KEY = 'bockle:timer-minutes';
+
+function normalizeTimerMinutes(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_TIMER_MINUTES;
+  const rounded = Math.round(value);
+  return Math.min(5, Math.max(1, rounded));
+}
 
 function normalizeExpiryAlertText(value: unknown): string {
   if (typeof value !== 'string') return DEFAULT_EXPIRY_ALERT_TEXT;
 
-  const trimmed = value.trim();
-  if (trimmed.length === 0) return DEFAULT_EXPIRY_ALERT_TEXT;
-
-  return trimmed.slice(0, 80);
+  return value.slice(0, 80);
 }
 
 function cloneDefaultDice() {
@@ -102,7 +107,7 @@ const GameContext = createContext<GameContextType>({
 });
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [timerMinutes, setTimerMinutes] = useState(3);
+  const [timerMinutes, setTimerMinutes] = useState(DEFAULT_TIMER_MINUTES);
   const [dice, setDice] = useState<string[][]>(cloneDefaultDice());
   const [hasCustomSavedDice, setHasCustomSavedDice] = useState(false);
   const [expiryAlertMode, setExpiryAlertMode] = useState<ExpiryAlertMode>('speak');
@@ -140,6 +145,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const savedAlertText = await AsyncStorage.getItem(EXPIRY_ALERT_TEXT_STORAGE_KEY);
         if (savedAlertText !== null) {
           if (isMounted) setExpiryAlertText(normalizeExpiryAlertText(savedAlertText));
+        }
+
+        const savedTimerMinutes = await AsyncStorage.getItem(TIMER_MINUTES_STORAGE_KEY);
+        if (savedTimerMinutes !== null) {
+          const parsedTimerMinutes = Number(savedTimerMinutes);
+          if (isMounted) setTimerMinutes(normalizeTimerMinutes(parsedTimerMinutes));
         }
       } catch {
         // Ignore read/parse errors and use defaults.
@@ -211,6 +222,27 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     persistAlertText();
   }, [expiryAlertText, hasHydratedDice]);
+
+  useEffect(() => {
+    if (!hasHydratedDice) return;
+
+    const normalizedTimerMinutes = normalizeTimerMinutes(timerMinutes);
+
+    if (normalizedTimerMinutes !== timerMinutes) {
+      setTimerMinutes(normalizedTimerMinutes);
+      return;
+    }
+
+    async function persistTimerMinutes() {
+      try {
+        await AsyncStorage.setItem(TIMER_MINUTES_STORAGE_KEY, String(normalizedTimerMinutes));
+      } catch {
+        // Ignore write errors to keep UI responsive.
+      }
+    }
+
+    persistTimerMinutes();
+  }, [timerMinutes, hasHydratedDice]);
 
   return (
     <GameContext.Provider
