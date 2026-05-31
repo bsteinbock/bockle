@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.15",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.8",
     "expo-constants": "~56.0.16",
     "expo-dev-client": "~56.0.18",
@@ -38,8 +39,8 @@
     "start": "expo start",
     "dev": "npx expo start --clear",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "eas:init": "npx eas init",

@@ -8,7 +8,7 @@ import { DEFAULT_DICE, useGame } from '@/context/game-context';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function SettingsScreen() {
-  const { timerMinutes, setTimerMinutes, dice, setDice } = useGame();
+  const { timerMinutes, setTimerMinutes, dice, setDice, hasCustomSavedDice } = useGame();
   const theme = useTheme();
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
@@ -29,9 +29,19 @@ export default function SettingsScreen() {
     },
   });
 
+  const sanitizeDieFaceInput = (value: string) => {
+    const lettersOnly = value.replace(/[^A-Za-z]/g, '').slice(0, 2);
+
+    if (lettersOnly.length === 0) return '';
+    if (lettersOnly.length === 1) return lettersOnly.toUpperCase();
+
+    return `${lettersOnly[0].toUpperCase()}${lettersOnly[1].toLowerCase()}`;
+  };
+
   const updateFace = (dieIndex: number, faceIndex: number, value: string) => {
+    const sanitizedValue = sanitizeDieFaceInput(value);
     const newDice = dice.map((die, i) =>
-      i === dieIndex ? die.map((face, j) => (j === faceIndex ? value.toUpperCase() : face)) : die,
+      i === dieIndex ? die.map((face, j) => (j === faceIndex ? sanitizedValue : face)) : die,
     );
     setDice(newDice);
   };
@@ -43,7 +53,9 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
+      contentInset={{ bottom: insets.bottom }}
+      automaticallyAdjustContentInsets={false}
+      contentInsetAdjustmentBehavior="never"
       contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
     >
       <ThemedView style={styles.container}>
@@ -86,17 +98,19 @@ export default function SettingsScreen() {
         {/* Dice Configuration Header */}
         <View style={styles.diceSectionHeader}>
           <ThemedText type="smallBold">Dice Configuration</ThemedText>
-          <Pressable
-            style={({ pressed }) => [
-              styles.resetButton,
-              { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
-            ]}
-            onPress={resetToDefaults}
-          >
-            <ThemedText type="small" themeColor="textSecondary">
-              Reset to Defaults
-            </ThemedText>
-          </Pressable>
+          {hasCustomSavedDice && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.resetButton,
+                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+              ]}
+              onPress={resetToDefaults}
+            >
+              <ThemedText type="small" themeColor="textSecondary">
+                Reset to Defaults
+              </ThemedText>
+            </Pressable>
+          )}
         </View>
 
         {dice.map((die, dieIndex) => (
@@ -154,6 +168,7 @@ const styles = StyleSheet.create({
   section: {
     borderRadius: 12,
     padding: Spacing.three,
+    marginBottom: Spacing.three,
     gap: Spacing.two,
   },
   sectionLabel: {
