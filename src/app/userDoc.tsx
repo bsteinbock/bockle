@@ -40,7 +40,9 @@ export default function UserDocScreen() {
             Object of the Game
           </ThemedText>
           <ThemedText>
-            Find as many words as possible using the 4x4 grid of dice before time runs out.
+            Find as many words as possible using the 4x4 grid of dice before time runs out. Words must be at
+            least 3 characters and can only be formed from adjacent dice. Each die can only be used once per
+            word.
           </ThemedText>
         </ThemedView>
 
