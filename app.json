@@ -8,9 +8,11 @@
     "scheme": "bockle",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.billsteinbock.bockle"
     },
     "android": {
+      "package": "com.billsteinbock.bockle",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -39,6 +41,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "69869262-8abe-4265-9aaa-cff224234ebb"
+      }
+    },
+    "owner": "bsteinbk"
   }
 }
