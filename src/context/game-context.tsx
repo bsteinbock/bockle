@@ -121,11 +121,24 @@ const GameContext = createContext<GameContextType>({
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [timerMinutes, setTimerMinutes] = useState(DEFAULT_TIMER_MINUTES);
   const [dice, setDice] = useState<string[][]>(cloneDefaultDice());
-  const [hasCustomSavedDice, setHasCustomSavedDice] = useState(false);
   const [expiryAlertMode, setExpiryAlertMode] = useState<ExpiryAlertMode>('speak');
   const [expiryAlertText, setExpiryAlertText] = useState(DEFAULT_EXPIRY_ALERT_TEXT);
   const [expiryAlertVolume, setExpiryAlertVolume] = useState<ExpiryAlertVolume>(DEFAULT_EXPIRY_ALERT_VOLUME);
   const [hasHydratedDice, setHasHydratedDice] = useState(false);
+
+  const hasCustomSavedDice = !areDiceEqual(normalizeDice(dice) ?? cloneDefaultDice(), DEFAULT_DICE);
+
+  const updateExpiryAlertText = (text: string) => {
+    setExpiryAlertText(normalizeExpiryAlertText(text));
+  };
+
+  const updateExpiryAlertVolume = (volume: ExpiryAlertVolume) => {
+    setExpiryAlertVolume(normalizeExpiryAlertVolume(volume));
+  };
+
+  const updateTimerMinutes = (minutes: number) => {
+    setTimerMinutes(normalizeTimerMinutes(minutes));
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -141,7 +154,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           if (normalizedDice) {
             if (isMounted) {
               setDice(normalizedDice);
-              setHasCustomSavedDice(!areDiceEqual(normalizedDice, DEFAULT_DICE));
             }
           } else {
             await AsyncStorage.removeItem(DICE_STORAGE_KEY);
@@ -190,7 +202,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     const normalizedDice = normalizeDice(dice) ?? cloneDefaultDice();
     const isCustomDice = !areDiceEqual(normalizedDice, DEFAULT_DICE);
-    setHasCustomSavedDice(isCustomDice);
 
     async function persistDice() {
       try {
@@ -226,11 +237,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     const normalizedText = normalizeExpiryAlertText(expiryAlertText);
 
-    if (normalizedText !== expiryAlertText) {
-      setExpiryAlertText(normalizedText);
-      return;
-    }
-
     async function persistAlertText() {
       try {
         await AsyncStorage.setItem(EXPIRY_ALERT_TEXT_STORAGE_KEY, normalizedText);
@@ -246,11 +252,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!hasHydratedDice) return;
 
     const normalizedVolume = normalizeExpiryAlertVolume(expiryAlertVolume);
-
-    if (normalizedVolume !== expiryAlertVolume) {
-      setExpiryAlertVolume(normalizedVolume);
-      return;
-    }
 
     async function persistAlertVolume() {
       try {
@@ -268,11 +269,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     const normalizedTimerMinutes = normalizeTimerMinutes(timerMinutes);
 
-    if (normalizedTimerMinutes !== timerMinutes) {
-      setTimerMinutes(normalizedTimerMinutes);
-      return;
-    }
-
     async function persistTimerMinutes() {
       try {
         await AsyncStorage.setItem(TIMER_MINUTES_STORAGE_KEY, String(normalizedTimerMinutes));
@@ -288,16 +284,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     <GameContext.Provider
       value={{
         timerMinutes,
-        setTimerMinutes,
+        setTimerMinutes: updateTimerMinutes,
         dice,
         setDice,
         hasCustomSavedDice,
         expiryAlertMode,
         setExpiryAlertMode,
         expiryAlertText,
-        setExpiryAlertText,
+        setExpiryAlertText: updateExpiryAlertText,
         expiryAlertVolume,
-        setExpiryAlertVolume,
+        setExpiryAlertVolume: updateExpiryAlertVolume,
       }}
     >
       {children}

@@ -1,18 +1,19 @@
 {
   "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.47843,1.00000,1.00000"
+    "automatic-gradient" : "srgb:0.99216,0.90588,0.12157,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "image-name" : "expo-symbol 2.svg",
-          "name" : "expo-symbol 2",
+          "hidden" : false,
+          "image-name" : "bockle_transparent 1024.png",
+          "name" : "bockle_transparent 1024",
           "position" : {
-            "scale" : 1,
+            "scale" : 0.9,
             "translation-in-points" : [
-              1.1008400065293245e-05,
-              -16.046875
+              0,
+              0
             ]
           }
         },

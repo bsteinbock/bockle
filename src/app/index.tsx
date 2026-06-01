@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -108,9 +108,12 @@ export default function BockleScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={[styles.safeArea]}>
-        <ThemedText type="title" style={styles.title}>
-          Bockle
-        </ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText type="title" style={styles.title}>
+            Bockle
+          </ThemedText>
+          <Image source={require('../../assets/images/icon-basic.png')} style={styles.titleIcon} />
+        </View>
         <View style={styles.timerContainer}>
           <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
         </View>
@@ -201,9 +204,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
   title: {
     fontSize: 40,
     fontWeight: '700',
+  },
+  titleIcon: {
+    width: 48,
+    height: 48,
+    resizeMode: 'contain',
   },
   timerContainer: {
     alignSelf: 'center',

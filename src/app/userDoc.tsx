@@ -75,7 +75,8 @@ export default function UserDocScreen() {
               Vibrate.
             </ThemedText>
             <ThemedText>
-              If Speak is selected, you can customize the spoken Alert Text. The default is "Time's up".
+              If Speak is selected, you can customize the spoken Alert Text. The default is &quot;Time&apos;s
+              up&quot;.
             </ThemedText>
           </ThemedView>
 
