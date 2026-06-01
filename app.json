@@ -8,6 +8,7 @@
     "scheme": "bockle",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "supportsTablet": true,
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.billsteinbock.bockle",
       "infoPlist": {
