@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -17,6 +17,8 @@ function rollDice(dice: string[][]): string[] {
 export default function BockleScreen() {
   const { dice, timerMinutes, expiryAlertMode, expiryAlertText, expiryAlertVolume } = useGame();
   const theme = useTheme();
+  const colorScheme = useColorScheme();
+  const isDarkTheme = colorScheme === 'dark';
 
   const [rolledFaces, setRolledFaces] = useState<string[]>(() => rollDice(dice));
   const [remainingSeconds, setRemainingSeconds] = useState(timerMinutes * 60);
@@ -112,7 +114,14 @@ export default function BockleScreen() {
           <ThemedText type="title" style={styles.title}>
             Bockle
           </ThemedText>
-          <Image source={require('../../assets/images/icon-basic.png')} style={styles.titleIcon} />
+          <Image
+            source={
+              isDarkTheme
+                ? require('../../assets/images/icon-basic-dark.png')
+                : require('../../assets/images/icon-basic.png')
+            }
+            style={styles.titleIcon}
+          />
         </View>
         <View style={styles.timerContainer}>
           <ThemedText style={[styles.timer, { color: timerColor }]}>{timeString}</ThemedText>
