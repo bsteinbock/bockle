@@ -20,6 +20,7 @@
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.5",
     "expo-system-ui": "~56.0.5",
+    "expo-updates": "~56.0.17",
     "expo-web-browser": "~56.0.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -39,7 +40,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "dev": "npx expo start --clear",
+    "dev": "APP_VARIANT=development npx expo start --clear",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
