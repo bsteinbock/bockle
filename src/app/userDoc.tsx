@@ -18,7 +18,13 @@ export default function UserDocScreen() {
     : `(${Platform.OS})`;
   const versionText = `Version: ${version}${buildNumber}`;
   const showLicenses = () => {
-    ReactNativeLegal.launchLicenseListScreen('Open Source Software Licenses');
+    try {
+      const result = ReactNativeLegal.launchLicenseListScreen('Open Source Software Licenses');
+
+      console.log('result', result);
+    } catch (e) {
+      console.error('legal error', e);
+    }
   };
 
   const contentPlatformStyle = Platform.select({

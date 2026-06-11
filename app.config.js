@@ -46,6 +46,7 @@ module.exports = {
     },
     plugins: [
       'expo-router',
+      'react-native-legal',
       'expo-image',
       [
         'expo-dev-client',
