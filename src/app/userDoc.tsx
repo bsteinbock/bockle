@@ -20,8 +20,6 @@ export default function UserDocScreen() {
   const showLicenses = () => {
     try {
       const result = ReactNativeLegal.launchLicenseListScreen('Open Source Software Licenses');
-
-      console.log('result', result);
     } catch (e) {
       console.error('legal error', e);
     }
