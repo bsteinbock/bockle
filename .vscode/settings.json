@@ -4,5 +4,14 @@
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
   },
-  "cSpell.words": ["billsteinbock", "Bockle", "bsteinbk", "nums", "questionmark", "Steinbock", "worklets"]
+  "cSpell.words": [
+    "billsteinbock",
+    "Bockle",
+    "bsteinbk",
+    "nums",
+    "questionmark",
+    "Steinbock",
+    "topbar",
+    "worklets"
+  ]
 }
