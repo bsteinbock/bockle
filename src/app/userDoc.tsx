@@ -1,4 +1,6 @@
-import { Platform, ScrollView, StyleSheet } from 'react-native';
+import * as Application from 'expo-application';
+import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ReactNativeLegal } from 'react-native-legal';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -10,6 +12,14 @@ export default function UserDocScreen() {
   const theme = useTheme();
   const safeAreaInsets = useSafeAreaInsets();
   const bottomInset = safeAreaInsets.bottom + BottomTabInset + Spacing.three;
+  const version = Application.nativeApplicationVersion || 'Unknown';
+  const buildNumber = Application.nativeBuildVersion
+    ? `(${Application.nativeBuildVersion} ${Platform.OS})`
+    : `(${Platform.OS})`;
+  const versionText = `Version: ${version}${buildNumber}`;
+  const showLicenses = () => {
+    ReactNativeLegal.launchLicenseListScreen('Open Source Software Licenses');
+  };
 
   const contentPlatformStyle = Platform.select({
     android: {
@@ -33,6 +43,9 @@ export default function UserDocScreen() {
         <ThemedView style={styles.container}>
           <ThemedText type="subtitle" style={styles.pageTitle}>
             Bockle Game Info
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.versionText}>
+            {versionText}
           </ThemedText>
 
           <ThemedView type="backgroundElement" style={styles.section}>
@@ -91,6 +104,19 @@ export default function UserDocScreen() {
               4. Start a round and let the timer reach 0:00 to verify in-game expiration feedback.
             </ThemedText>
           </ThemedView>
+
+          <Pressable
+            onPress={showLicenses}
+            style={({ pressed }) => [
+              styles.licenseButton,
+              {
+                borderColor: theme.textSecondary,
+                backgroundColor: pressed ? theme.backgroundSelected : theme.backgroundElement,
+              },
+            ]}
+          >
+            <ThemedText type="smallBold">Show OSS Licenses</ThemedText>
+          </Pressable>
         </ThemedView>
       </ScrollView>
     </SafeAreaView>
@@ -118,6 +144,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pageTitle: {
+    marginBottom: Spacing.one,
+  },
+  versionText: {
     marginBottom: Spacing.two,
   },
   section: {
@@ -127,5 +156,14 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     marginBottom: Spacing.one,
+  },
+  licenseButton: {
+    alignSelf: 'center',
+    marginTop: Spacing.three,
+    marginBottom: Spacing.one,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
   },
 });
